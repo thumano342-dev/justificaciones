@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Canal {{ canal }}</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+  <div class="container mt-5">
+    <h2 class="mb-4 text-center">📂 Registros del canal: {{ canal }}</h2>
+
+    {% if registros %}
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Archivo</th>
+          <th>CM</th>
+          <th>User Code</th>
+          <th>English Name</th>
+          <th>User Title</th>
+          <th>Razon</th>
+          <th>Cedula</th>
+          <th>Justificación</th>
+          <th>Observaciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in registros %}
+        <tr>
+          <td>{{ r.archivo }}</td>
+          <td>{{ r.CM }}</td>
+          <td>{{ r.user_code }}</td>
+          <td>{{ r.english_name }}</td>
+          <td>{{ r.user_title }}</td>
+          <td>{{ r.razon }}</td>
+          <td>{{ r.Cedula }}</td>
+          <td>{{ r.justificacion }}</td>
+          <td>{{ r.observaciones }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+      <p class="text-center text-muted">No hay registros en este canal.</p>
+    {% endif %}
+  </div>
+</body>
+</html>

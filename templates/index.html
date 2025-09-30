@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Novedades</title>
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/xiaomi retail') }}">
+
+
+  <!-- ✅ Bootstrap -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- ✅ CSS personalizado -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+
+<body>
+  <nav class="navbar navbar-expand-lg navbar-orange shadow-sm">
+    <div class="container-fluid">
+      <a class="navbar-brand d-flex align-items-center" href="#">
+        <img src="{{ url_for('static', filename='img/xiaomi retail.png') }}" alt="RMS Logo" height="60" class="me-2">
+        <span class="fw-bold text-white fs-5">Xiaomi Retail</span>
+      </a>
+
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item">
+          <a class="btn-contacto-modern" href="#" id="contactLink">
+            <span></span> Contacto
+          </a>
+        </li>
+      </ul>
+
+
+    </div>
+  </nav>
+
+
+
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <!-- 🚨 Scripts de validación -->
+  <script>
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const select = document.getElementById('justificacion');
+      const mensaje = document.getElementById('mensaje-justificacion');
+
+      select.addEventListener('change', () => {
+        const valor = select.value;
+
+        // Limpiamos mensaje anterior
+        mensaje.textContent = '';
+        mensaje.className = 'form-text text-muted'; // reset estilo
+
+        if (valor === 'Calamidad Domestica' || valor === 'Incapacidad') {
+          mensaje.textContent = 'Recuerda dejar la solicitud en el sistema si aplica para días posteriores.';
+        }
+
+        if (valor === 'Día No Remunerado' || valor === 'Sin Justificación') {
+          mensaje.textContent = '⚠️ Esta opción implica descuento.';
+          mensaje.classList.add('text-danger'); // lo pone rojo
+        }
+
+        if (valor === 'Usuario Retirado') {
+          mensaje.innerHTML = 'Esta solicitud debes enviarla por correo. <a href="mailto:tu_correo@empresa.com">Haz clic aquí</a>.';
+        }
+      });
+    });
+
+
+    // ✅ Solicitar PIN para un canal específico
+    function solicitarPIN() {
+      Swal.fire({
+        title: '🔒 Ingresa la contraseña del canal',
+        input: 'password',
+        inputPlaceholder: 'Escribe la contraseña...',
+        confirmButtonText: 'Entrar',
+        confirmButtonColor: '#f96000',  // naranja
+        cancelButtonText: 'Cancelar',
+        showCancelButton: true,
+        background: '#fffaf5',           // fondo claro
+        color: '#333',                   // texto oscuro
+        customClass: {
+          popup: 'rounded-3 shadow-lg'   // bordes redondeados, sombra
+        }
+      }).then((result) => {
+        if (result.isConfirmed && result.value) {
+          const pin = result.value;
+          document.getElementById('pin').value = pin;
+          document.getElementById('form-canal').submit();
+        }
+      });
+    }
+
+
+    // ✅ Marca Observaciones como obligatorio si seleccionan "Otros" o "Falla RMS"
+    function validarObservacion(select, idx) {
+      const valor = select.value;
+      const obs = document.getElementById("obs_" + idx);
+      const msg = document.getElementById("msg_" + idx);
+
+      if (valor === "Otros" || valor.includes("Falla RMS")) {
+        obs.setAttribute("required", "required");
+        msg.style.display = "block";
+        obs.placeholder = valor.includes("Falla RMS")
+          ? "Indique Fecha, Hora y el Medio por el cual reportó la novedad"
+          : "Especifique la razón";
+      } else {
+        obs.removeAttribute("required");
+        msg.style.display = "none";
+        obs.placeholder = "";
+      }
+    }
+
+
+
+    // ✅ Mensajes de advertencia según justificación
+    function mostrarAdvertencia(select, idx) {
+      // Selecciona los contenedores de alerta y mensaje/link
+      const alerta = document.getElementById("alerta-general-" + idx);
+      const mensaje = document.getElementById("mensaje-justificacion-" + idx);
+
+      // Ocultar todo cada vez que cambia
+      alerta.style.display = "none";
+      alerta.innerText = "";
+      if (mensaje) mensaje.style.display = "none";
+
+      // Mostrar según el valor del select
+      if (select.value === "Otros") {
+        alerta.innerText = "⚠️ Ha seleccionado 'Otros'. Por favor especifique en Observaciones.";
+        alerta.style.display = "block";
+      }
+      else if (select.value === "Falla RMS") {
+        alerta.innerText = "⚠️ Ha seleccionado 'Falla RMS'. Recuerde justificar claramente en Observaciones.";
+        alerta.style.display = "block";
+      }
+      else if (select.value === "Usuario Retirado") {
+        if (mensaje) mensaje.style.display = "block"; // muestra el bloque con el link
+      }
+      else if (select.value === "Calamidad Domestica") {
+        alerta.innerText = "⚠️ Si esta justificación se mantiene para días posteriores recuerda dejar la solicitud en el sistema.";
+        alerta.style.display = "block";
+      }
+      else if (select.value === "Incapacidad") {
+        alerta.innerText = "⚠️ Si esta justificación se mantiene para días posteriores recuerda dejar la solicitud en el sistema.";
+        alerta.style.display = "block";
+      }
+      else if (select.value === "Día No Remunerado") {
+        alerta.innerText = "⚠️ Se procederá con descuento.";
+        alerta.style.display = "block";
+      }
+      else if (select.value === "Sin Justificación") {
+        alerta.innerText = "⚠️ Se procederá con descuento.";
+        alerta.style.display = "block";
+      }
+      else if (select.value === "Día de Familia") {
+        alerta.innerText = "⚠️ RECUERDA: Esta solicitud la debes tener en tu plan de trabajo semanal.";
+        alerta.style.display = "block";
+      }
+      else if (select.value === "Licencia") {
+        alerta.innerText = "⚠️ RECUERDA: Esta solicitud la debes tener en tu plan de trabajo semanal.";
+        alerta.style.display = "block";
+      }
+      else if (select.value === "Vacaciones") {
+        alerta.innerText = "⚠️ RECUERDA: Esta solicitud la debes tener en tu plan de trabajo semanal.";
+        alerta.style.display = "block";
+      }
+      else if (select.value === "Día Administrativo") {
+        alerta.innerText = "⚠️ RECUERDA: Esta solicitud la debes tener en tu plan de trabajo semanal.";
+        alerta.style.display = "block";
+      }
+      else if (select.value === "Día Compensatorio") {
+        alerta.innerText = "⚠️ RECUERDA: Esta solicitud la debes tener en tu plan de trabajo semanal.";
+        alerta.style.display = "block";
+      }
+    }
+
+    // Valida campos obligatorios
+
+
+    function validarFormulario() {
+      let valido = true;
+      let primerCampoError = null;
+
+      document.querySelectorAll(".justificacion").forEach((select) => {
+        if (select.value.trim() === "") {
+          if (!primerCampoError) primerCampoError = select;
+          valido = false;
+        }
+        let index = select.name.split("_")[1];
+        let obs = document.getElementById("obs_" + index);
+
+        if ((select.value === "Otros" || select.value === "Falla RMS") && obs.value.trim() === "") {
+          if (!primerCampoError) primerCampoError = obs;
+          valido = false;
+        }
+      });
+
+      if (!valido) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Campos incompletos',
+          text: 'Debes llenar todos los campos obligatorios antes de enviar.',
+          confirmButtonText: 'Ir al campo',
+          confirmButtonColor: '#f96000'
+        }).then(() => {
+          // Esperamos un poquito para que SweetAlert desaparezca completamente
+          if (primerCampoError) {
+            setTimeout(() => {
+              primerCampoError.scrollIntoView({ behavior: "smooth", block: "center" });
+              primerCampoError.focus();
+            }, 300); // 300 ms después del cierre
+          }
+        });
+      }
+
+      return valido;
+    }
+
+    function abrirModal() {
+      if (validarFormulario()) {
+        let modal = new bootstrap.Modal(document.getElementById("confirmModal"));
+        modal.show();
+      }
+    }
+
+
+
+
+
+    // ✅ Ajusta el ancho de las barras de progreso al cargar
+    document.addEventListener("DOMContentLoaded", () => {
+      document.querySelectorAll(".progress-bar").forEach(bar => {
+        const prog = bar.getAttribute("data-progreso");
+        if (prog !== null) {
+          bar.style.width = prog + "%";
+        }
+      });
+    });
+  </script>
+
+  </head>
+
+
+  <body>
+    <div class="container my-4">
+      <h1 class="titulo-formulario">FORMULARIO DE JUSTIFICACIONES</h1>
+
+
+
+      <!-- 🔹 Tarjetas de canales -->
+
+      {% if not perfil %}
+      <div class="row">
+        {% for canal in canales %}
+        <div class="col-md-3 mb-3">
+          <div class="card shadow-sm border-0 rounded-3 h-100" style="padding: 10px; background-color: #2a3544;">
+            <div class="card-body text-center d-flex flex-column justify-content-between">
+
+              <h5 class="fw-bold text-truncate mb-2 border-bottom pb-1" style="font-size: 1rem; color: #f9f9f9;">
+                {{ canal }}
+              </h5>
+
+
+              <!-- Logo del canal centrado -->
+              <img src="{{ url_for('static', filename='img/' ~ canal|lower ~ '.png') }}" alt="{{ canal }} Logo"
+                style="max-width:180px; max-height:120px; margin: 0 auto 12px; display:block;">
+
+
+
+              <form method="post" action="/" id="form-canal-{{ loop.index }}">
+                <input type="hidden" name="canal" value="{{ canal }}">
+                <input type="hidden" name="pin" id="pin-{{ loop.index }}">
+                <button type="button" class="btn-entrar-modern w-100" onclick="solicitarPIN('{{ loop.index }}')">
+                  ACCEDER
+                </button>
+              </form>
+
+
+
+
+
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <script>
+        function solicitarPIN(idx) {
+          Swal.fire({
+            html: `
+      <div style="text-align:center;">
+        <!-- LOGO XIAOMI -->
+        <img src="https://upload.wikimedia.org/wikipedia/commons/2/29/Xiaomi_logo.svg" 
+             alt="Logo Xiaomi" 
+             style="width:70px; height:70px; border-radius:12px; margin-bottom:10px;">
+        <h2 style="
+          font-size: 1.6rem;
+          font-weight: 800;
+          background: linear-gradient(90deg, #ff8c00, #ffb347);
+          -webkit-background-clip: text;
+          background-clip: text;
+          color: transparent;
+          text-transform: uppercase;
+          letter-spacing: 1px;
+          margin:0;
+        ">Ingresa tu PIN</h2>
+      </div>
+    `,
+            input: 'password',
+            inputPlaceholder: '••••••',
+            inputAttributes: {
+              maxlength: 10,
+              autocapitalize: 'off',
+              autocorrect: 'off',
+              style: `
+        text-align:center;
+        font-size: 1.1rem;
+        border-radius: 10px;
+        border: 2px solid #ff8c00;
+        padding: 10px;
+      `
+            },
+            showCancelButton: true,
+            confirmButtonText: 'Entrar',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#ff8c00',
+            cancelButtonColor: '#6c757d',
+            background: '#1c2530', /* Fondo oscuro */
+            color: '#ffffff',
+            customClass: {
+              popup: 'rounded-4 shadow-lg'
+            },
+            didOpen: () => {
+              const input = Swal.getInput();
+
+              // 📌 Botón para mostrar/ocultar PIN
+              const toggleBtn = document.createElement('button');
+              toggleBtn.textContent = 'Mostrar';
+              toggleBtn.type = 'button';
+              toggleBtn.style.position = 'absolute';
+              toggleBtn.style.right = '20px';
+              toggleBtn.style.top = '50%';
+              toggleBtn.style.transform = 'translateY(-50%)';
+              toggleBtn.style.background = 'linear-gradient(90deg, #ff8c00, #ffb347)';
+              toggleBtn.style.color = '#fff';
+              toggleBtn.style.border = 'none';
+              toggleBtn.style.borderRadius = '6px';
+              toggleBtn.style.padding = '4px 10px';
+              toggleBtn.style.fontSize = '0.8rem';
+              toggleBtn.style.fontWeight = 'bold';
+              toggleBtn.style.cursor = 'pointer';
+              toggleBtn.style.transition = 'all 0.2s ease';
+              toggleBtn.onmouseenter = () => toggleBtn.style.transform = 'translateY(-50%) scale(1.05)';
+              toggleBtn.onmouseleave = () => toggleBtn.style.transform = 'translateY(-50%)';
+
+              toggleBtn.onclick = () => {
+                input.type = input.type === 'password' ? 'text' : 'password';
+                toggleBtn.textContent = input.type === 'password' ? 'Mostrar' : 'Ocultar';
+              };
+
+              const parent = Swal.getPopup().querySelector('.swal2-input').parentNode;
+              parent.style.position = 'relative';
+              parent.appendChild(toggleBtn);
+            },
+            preConfirm: (pin) => {
+              if (!pin) {
+                Swal.showValidationMessage('⚠️ Debes ingresar un PIN');
+                return false;
+              }
+              return pin;
+            }
+          }).then((result) => {
+            if (result.isConfirmed) {
+              const pinInput = document.getElementById("pin-" + idx);
+              pinInput.value = result.value;
+              document.getElementById("form-canal-" + idx).submit();
+              pinInput.value = ""; // ✅ Limpia el input después de enviar
+            }
+          });
+        }
+      </script>
+
+
+
+      {% endif %}
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+      {% for category, message in messages %}
+      <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+      {% endfor %}
+      {% endif %}
+      {% endwith %}
+
+
+      <!-- ✅ Canal ya seleccionado -->
+      {% if perfil %}
+      <div class="alert text-center" style="background-color:#262e38; color:#fcfcfc;">
+        ✅ Canal seleccionado: <strong>{{ perfil }}</strong>
+        <div class="mt-3 d-flex justify-content-center gap-2 flex-wrap">
+          <form method="post" action="/salir">
+            <button type="submit" class="btn btn-sm"
+              style="background-color:#dc3545; color:#fff; border:none; border-radius:4px;">
+              Cerrar sesión
+            </button>
+          </form>
+        </div>
+      </div>
+      {% endif %}
+
+
+
+      <!-- ✅ SI NO HAY ARCHIVO SELECCIONADO -->
+      {% if not archivo %}
+      {% if archivos|length == 0 or canal_completo %}
+
+      {% else %}
+      <h3 class="text-center mb-4 text-white">
+        📂 Archivos pendientes de <strong>{{ perfil }}</strong>
+      </h3>
+
+      <div class="row">
+        {% for arch in archivos %}
+        <div class="col-md-6 mb-4">
+          <div class="card shadow-sm border-0 rounded-3">
+            <div class="card-body text-center">
+
+              <!-- 🔹 Nombre del archivo -->
+
+              <h6 class="fw-bold text-truncate mb-3" style="color:#f3f2f2;">
+                <i class="bi bi-file-earmark-text me-2"></i>{{ arch }}
+              </h6>
+
+              <!-- 🔹 Círculo con número -->
+              <div class="progress-container mx-auto mb-3" style="position: relative; width: 80px; height: 80px;">
+                <canvas class="progress-circle" id="chart-{{ loop.index }}" width="80" height="80"
+                  data-progreso="{{ progreso_archivos[arch] }}">
+                </canvas>
+                <div class="progress-text fw-bold" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                      font-size: 14px; color:#f8f3f3;">
+                  {{ progreso_archivos[arch] }}%
+                </div>
+              </div>
+
+              <!-- 🔹 Barra de progreso con número al lado -->
+              <!-- 🔹 Barra de progreso con número al lado -->
+              <div class="d-flex align-items-center my-3">
+                <div class="progress flex-grow-1" style="height: 18px; border-radius: 10px;">
+                  <div
+                    class="progress-bar {% if progreso_archivos[arch] < 100 %}bg-warning{% else %}bg-success{% endif %}"
+                    role="progressbar" data-progreso="{{ progreso_archivos[arch] }}">
+                  </div>
+                </div>
+                <span class="ms-2 fw-bold text-white">{{ progreso_archivos[arch] }}%</span>
+              </div>
+
+
+              <script>
+
+                document.addEventListener("DOMContentLoaded", () => {
+                  document.querySelectorAll(".progress-bar").forEach(bar => {
+                    const prog = bar.getAttribute("data-progreso");
+                    if (prog !== null) {
+                      bar.style.width = prog + "%";
+                    }
+                  });
+                });
+
+
+
+              </script>
+
+
+
+              <!-- 🔹 
+             do -->
+              {% if progreso_archivos[arch] < 100 %} <p class="text-white small mb-3">⏳ Archivo en progreso...</p>
+                {% else %}
+                <p class="text-white fw-bold small mb-3">✅ Archivo completado</p>
+
+                {% endif %}
+
+                <form method="get" action="/" class="mt-auto">
+                  <input type="hidden" name="canal" value="{{ perfil }}">
+                  <input type="hidden" name="archivo" value="{{ arch }}">
+                  <button type="submit" class="w-100" style="
+      background-color: #28a745;
+      color: #fff;
+      border: none;
+      font-weight: 600;
+      padding: .375rem .75rem;
+      border-radius: .375rem;
+      transition: background-color 0.3s ease;
+      cursor: pointer;
+    " onmouseover="this.style.backgroundColor='#218838';" onmouseout="this.style.backgroundColor='#28a745';">
+                    📂 Abrir
+                  </button>
+                </form>
+
+
+
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- 🔹 Script para los círculos -->
+      <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+      <script>
+        document.addEventListener("DOMContentLoaded", function () {
+          document.querySelectorAll(".progress-circle").forEach(function (canvas) {
+            const ctx = canvas.getContext("2d");
+            const porcentaje = parseInt(canvas.dataset.progreso);
+
+            new Chart(ctx, {
+              type: "doughnut",
+              data: {
+                datasets: [{
+                  data: [porcentaje, 100 - porcentaje],
+                  // 🔸 progreso naranja + fondo gris
+                  backgroundColor: ["#FF6900", "#e9ecef"],
+                  borderWidth: 0
+                }]
+              },
+              options: {
+                cutout: "70%", // mantiene un anillo delgado y elegante
+                responsive: false,
+                plugins: {
+                  legend: { display: false },
+                  tooltip: { enabled: false }
+                }
+              }
+            });
+          });
+        });
+      </script>
+
+      {% endif %}
+      {% endif %}
+
+
+
+
+      <!-- ✅ SI HAY ARCHIVO SELECCIONADO: MUESTRO FORMULARIO -->
+      {% if archivo %}
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="text-white">📂 Trabajando en: <strong>{{ archivo }}</strong></h2>
+        <form method="get" action="/">
+          <input type="hidden" name="canal" value="{{ perfil }}">
+          <button type="submit" class="btn btn-sm"
+            style="background-color:#1e6d14; color:#ffffff; border:none; border-radius:6px;">
+            Volver al menú principal
+          </button>
+
+
+        </form>
+      </div>
+
+      <!-- 🔹 SELECTOR DE CM -->
+      <form method="get" action="/" class="mb-3">
+        <input type="hidden" name="canal" value="{{ perfil }}">
+        <input type="hidden" name="archivo" value="{{ archivo }}">
+        <label for="cm" class="form-label">Filtrar por CM:</label>
+        <select class="form-select" name="cm" id="cm" onchange="this.form.submit()">
+          <option value="">-- Todos --</option>
+          {% for r in responsables %}
+          <option value="{{ r }}" {% if r==filtro_cm %}selected{% endif %}>{{ r }}</option>
+          {% endfor %}
+        </select>
+      </form>
+
+      <!-- 📊 PROGRESO DEL ARCHIVO SELECCIONADO -->
+      <div class="card text-center mb-4 shadow-sm border-0">
+        <div class="card-body">
+
+          <p class="mb-0">✅ Completados: <strong>{{ completados }}</strong></p>
+          <p class="mb-0">📄 Total: <strong>{{ total }}</strong></p>
+        </div>
+      </div>
+
+      {% if df_filtrado|length == 0 %}
+      <div class="alert alert-success">
+        ✅ Todos los registros del canal <strong>{{ perfil }}</strong> están diligenciados.
+      </div>
+      {% else %}
+      <!-- 📋 FORMULARIO DE JUSTIFICACIONES -->
+      <form method="post" action="/" id="miForm">
+
+        <input type="hidden" name="canal" value="{{ perfil }}">
+        <input type="hidden" name="archivo" value="{{ archivo }}">
+        <input type="hidden" name="cm" value="{{ filtro_cm }}">
+
+        {% for i, row in df_filtrado %}
+        <div class="card mb-3 shadow-sm">
+          <div class="card-body">
+            <h5 class="card-title">{{ row['English Name'] }}</h5>
+            <p class="mb-1"><strong>CM:</strong> {{ row['CM'] }}</p>
+            <p class="mb-1"><strong>Código:</strong> {{ row['User Code'] }}</p>
+            <p class="mb-3"><strong>Razón:</strong> {{ row['Razon'] }}</p>
+
+
+
+            <!-- ✅ JUSTIFICACIÓN -->
+            <label class="form-label">Justificación:</label>
+            <select class="form-select justificacion" name="just_{{ i }}"
+              onchange="validarObservacion(this, '{{ i }}'); mostrarAdvertencia(this, '{{ i }}')">
+              {% set opciones = opciones_por_razon.get(row['Razon'], opciones_por_razon['Sin_Registro_In_Out']) %}
+              {% for op in opciones %}
+              <option value="{{ op }}" {% if op==row['Justificación'] %}selected{% endif %}>{{ op }}</option>
+              {% endfor %}
+            </select>
+
+            <!-- ⚠️ ALERTA GENERAL SEGÚN JUSTIFICACIÓN -->
+
+            <div id="alerta-general-{{ i }}" class="alert mt-2"
+              style="display:none; background-color:#243754; color:#f5f4f4; border:1px solid #ddd;">
+            </div>
+
+
+            <!-- 🔹 Mensaje / Link especial para "Usuario Retirado" -->
+            <div id="mensaje-justificacion-{{ i }}" class="form-text text-white" style="display:none;">
+              ⚠️ <strong>Realiza la solicitud en el siguiente formato</strong> y envíalo por correo:<br>
+              <a href="https://netorgft13722310-my.sharepoint.com/:x:/g/personal/diego_avila_peopleandtrade_com/EUrSPYFbQw9IvGf4UhesDdIBuCT8pVQtqGKW88g7aSJRwA?rtime=r2o-3ojP3Ug"
+                target="_blank" class="btn btn-sm mt-2"
+                style="background-color:#ff8c00; color:#f5f5f5; border:none; border-radius:6px; font-weight:600;">
+                📄 Descargar formato
+              </a>
+            </div>
+
+
+
+
+
+            <!-- 📝 OBSERVACIONES -->
+            <label class="form-label mt-2">Observaciones:</label>
+            <input type="text" class="form-control" name="obs_{{ i }}" id="obs_{{ i }}"
+              style="color: white; background-color:#000000;" value="{{ row['Observaciones en caso de Otros'] }}">
+
+            <small id="msg_{{ i }}" style="color:rgb(255, 251, 251);display:none;">
+              ⚠ Este campo es obligatorio para "Otros" o "Falla RMS".
+            </small>
+          </div>
+        </div>
+        {% endfor %}
+
+
+        <!-- Botón que abre modal -->
+
+        <button type="button" class="btn mt-3"
+          style="background-color:#28a745; color:#ffffff; border:none; border-radius:4px;" onclick="abrirModal()">💾
+          Guardar cambios</button>
+
+        <!-- Modal estilo OneDrive con naranja -->
+        <div class="modal fade" id="confirmModal" tabindex="-1" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 rounded-3 shadow-sm" style="max-width: 420px; margin:auto;">
+
+              <div class="modal-body p-4">
+                <h5 class="fw-bold mb-3 text-orange">¿ESTÁ SEGURO QUE DESEA ENVIAR?</h5>
+                <p class="text-muted mb-4" style="font-size: 0.9rem;">
+                  Una vez enviado ya no se podrá recuperar.
+                  Revise bien antes de continuar.
+                </p>
+                <div class="d-flex justify-content-end gap-2">
+                  <button type="button" class="btn btn-orange-cancel" data-bs-dismiss="modal">
+                    Cancelar
+                  </button>
+                  <button type="submit" class="btn btn-orange-confirm" form="miForm">
+                    Confirmar
+                  </button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <!-- CSS -->
+        <style>
+          /* Color naranja */
+          .text-orange {
+            color: #ff6900 !important;
+          }
+
+          /* Botón cancelar: blanco con borde naranja */
+          .btn-orange-cancel {
+            background-color: #ffffff;
+            color: #ff6900;
+            border: 1px solid #ff6900;
+            border-radius: .375rem;
+            transition: all 0.3s ease;
+          }
+
+          .btn-orange-cancel:hover {
+            background-color: #ff6900;
+            color: #ffffff;
+          }
+
+          /* Botón confirmar: naranja con texto blanco */
+          .btn-orange-confirm {
+            background-color: #ff6900;
+            color: #ffffff;
+            border: none;
+            border-radius: .375rem;
+            transition: all 0.3s ease;
+          }
+
+          .btn-orange-confirm:hover {
+            background-color: #e55d00;
+            /* más oscuro al pasar el mouse */
+            color: #ffffff;
+          }
+        </style>
+
+
+
+        <!-- Bootstrap Icons -->
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+      </form>
+
+      {% endif %}
+      {% endif %}
+
+    </div>
+    <!-- Asegúrate de tener el CSS de Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+
+    <script>
+      document.getElementById('contactLink').addEventListener('click', function (e) {
+        e.preventDefault();
+
+        Swal.fire({
+          title: '<span style="font-size:1.4rem; font-weight:bold; color:#f69000;">Contáctanos por WhatsApp</span>',
+          html: `
+      <style>
+        .btn-whatsapp {
+          display: flex;
+          align-items: center;
+          background: #25D366; /* Verde oficial de WhatsApp */
+          border-radius: 50px;
+          padding: 12px 18px;
+          text-decoration: none;
+          color: white;
+          font-size: 1.2rem;
+          font-weight: bold;
+          box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+          transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .btn-whatsapp:hover {
+          transform: scale(1.05);
+          box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+        }
+        .btn-whatsapp i {
+          font-size: 1.5rem;
+          margin-right: 10px;
+        }
+        .subtitle {
+          font-size: 0.9rem;
+          font-weight: 400;
+          opacity: 0.9;
+          display: block;
+        }
+      </style>
+
+      <div style="display:flex; flex-direction:column; gap:15px; margin-top:15px; color:#ffffff;">
+
+        <!-- Primer número -->
+        <a href="https://wa.me/573043896023" target="_blank" class="btn-whatsapp">
+          <i class="bi bi-whatsapp"></i>
+          <div>
+            304 389 6023
+            <span class="subtitle">Escríbenos por WhatsApp</span>
+          </div>
+        </a>
+
+        <!-- Segundo número -->
+        <a href="https://wa.me/573004796032" target="_blank" class="btn-whatsapp">
+          <i class="bi bi-whatsapp"></i>
+          <div>
+            300 479 6032
+            <span class="subtitle">Escríbenos por WhatsApp</span>
+          </div>
+        </a>
+
+      </div>
+    `,
+          showConfirmButton: true,
+          confirmButtonText: 'Cerrar',
+          confirmButtonColor: '#f69000',
+          width: 420,
+          background: '#1c2530', /* 👈 Fondo oscuro */
+          color: '#ffffff',       /* 👈 Texto blanco */
+          customClass: {
+            popup: 'rounded-4 shadow-lg'
+          }
+        });
+      });
+    </script>
+
+
+  </body>
+
+  <!-- ✅ SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+
+
+  <!-- ✅ Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+
+</html>
