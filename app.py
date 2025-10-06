@@ -8,10 +8,10 @@ from datetime import datetime, timedelta
 import shutil
 import tempfile
 from openpyxl import load_workbook
-import win32com.client as win32
-import pythoncom
 from datetime import datetime
 import re
+import smtplib
+from email.message import EmailMessage
 
 
 app = Flask(__name__)
@@ -39,57 +39,21 @@ def extraer_fecha(nombre_archivo):
     except Exception:
         return "día desconocido"
 
-def enviar_correo_outlook(archivo_path, nombre_archivo):
-    try:
-        pythoncom.CoInitialize()
 
-        archivo_absoluto = os.path.abspath(archivo_path)
-        if not os.path.exists(archivo_absoluto):
-            print(f"❌ El archivo no existe en: {archivo_absoluto}")
-            return
+def enviar_correo_smtp(archivo_path, nombre_archivo):
+    msg = EmailMessage()
+    msg["Subject"] = f"CONTROL DIARIO DE ASISTENCIA RMS DEL {extraer_fecha(nombre_archivo)}"
+    msg["From"] = "diego.avila@peopleandtrade.com"
+    msg["To"] = ", ".join(DESTINATARIOS)
+    msg.set_content("Buen día, adjunto el control de registro de asistencia en RMS.")
+    
+    with open(archivo_path, "rb") as f:
+        msg.add_attachment(f.read(), maintype="application", subtype="octet-stream", filename=nombre_archivo)
 
-        fecha_archivo = extraer_fecha(nombre_archivo)
-
-        outlook = win32.Dispatch("Outlook.Application")
-        mail = outlook.CreateItem(0)
-
-        # 🔹 Forzar envío desde la cuenta de Diego
-        outlook_namespace = outlook.GetNamespace("MAPI")
-        for cuenta in outlook_namespace.Accounts:
-            if "diego.avila" in cuenta.DisplayName.lower():
-                mail._oleobj_.Invoke(*(64209, 0, 8, 0, cuenta))
-                break
-
-        # Asunto con fecha en formato corto
-        mail.Subject = f"CONTROL DIARIO DE ASISTENCIA RMS DEL {fecha_archivo}"
-
-        # Imagen de firma (inline)
-        img_path = os.path.abspath("static/img/Diego.png")
-        attachment = mail.Attachments.Add(img_path)
-        attachment.PropertyAccessor.SetProperty(
-            "http://schemas.microsoft.com/mapi/proptag/0x3712001F",
-            "FirmaDiego"
-        )
-
-        mail.HTMLBody = f"""
-        <p>Buen día</p>
-        <p>Adjunto les comparto el control de registro de asistencia en RMS del {fecha_archivo}</p>
-        <p>Por favor me colaboran con sus novedades antes de las 3pm del día de hoy, consolidada por cada TL.</p>
-        <p>Por favor consolidarlo en el siguiente link: </p>
-        <p>Gracias</p>
-        <br>
-        <img src="cid:FirmaDiego"><br>
-        """
-
-        mail.To = "; ".join(DESTINATARIOS)
-        mail.Attachments.Add(archivo_absoluto)
-        mail.Send()
-        print("✅ Correo enviado desde la cuenta de Diego con éxito.")
-
-    except Exception as e:
-        print(f"❌ Error al enviar correo: {e}")
-    finally:
-        pythoncom.CoUninitialize()
+    with smtplib.SMTP("smtp.office365.com", 587) as server:
+        server.starttls()
+        server.login("diego.avila@peopleandtrade.com", "TU_CONTRASEÑA")
+        server.send_message(msg)
 
 
 
@@ -347,7 +311,6 @@ def admin():
 
                 archivo_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
 
-                enviar_correo_outlook(archivo_path, filename)
 
                 
 
