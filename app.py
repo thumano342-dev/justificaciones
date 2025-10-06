@@ -7,6 +7,12 @@ from werkzeug.utils import secure_filename
 from datetime import datetime, timedelta
 import shutil
 import tempfile
+from openpyxl import load_workbook
+import win32com.client as win32
+import pythoncom
+from datetime import datetime
+import re
+
 
 app = Flask(__name__)
 app.secret_key = 'TU_SECRET_KEY'
@@ -14,6 +20,82 @@ app.secret_key = 'TU_SECRET_KEY'
 UPLOAD_FOLDER = "uploads"
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 ALLOWED_EXTENSIONS = {"xlsx", "xls",}
+
+
+DESTINATARIOS = [
+    "talento.humano3@peopleandtrade.com",
+]
+
+
+def extraer_fecha(nombre_archivo):
+    try:
+        # Buscar un bloque de 8 dígitos (ejemplo: 01102025)
+        match = re.search(r"\d{8}", nombre_archivo)
+        if match:
+            fecha = datetime.strptime(match.group(), "%d%m%Y")
+            # 🔹 Devolver fecha en formato 01/10/2025
+            return fecha.strftime("%d/%m/%Y")
+        return "día desconocido"
+    except Exception:
+        return "día desconocido"
+
+def enviar_correo_outlook(archivo_path, nombre_archivo):
+    try:
+        pythoncom.CoInitialize()
+
+        archivo_absoluto = os.path.abspath(archivo_path)
+        if not os.path.exists(archivo_absoluto):
+            print(f"❌ El archivo no existe en: {archivo_absoluto}")
+            return
+
+        fecha_archivo = extraer_fecha(nombre_archivo)
+
+        outlook = win32.Dispatch("Outlook.Application")
+        mail = outlook.CreateItem(0)
+
+        # 🔹 Forzar envío desde la cuenta de Diego
+        outlook_namespace = outlook.GetNamespace("MAPI")
+        for cuenta in outlook_namespace.Accounts:
+            if "diego.avila" in cuenta.DisplayName.lower():
+                mail._oleobj_.Invoke(*(64209, 0, 8, 0, cuenta))
+                break
+
+        # Asunto con fecha en formato corto
+        mail.Subject = f"CONTROL DIARIO DE ASISTENCIA RMS DEL {fecha_archivo}"
+
+        # Imagen de firma (inline)
+        img_path = os.path.abspath("static/img/Diego.png")
+        attachment = mail.Attachments.Add(img_path)
+        attachment.PropertyAccessor.SetProperty(
+            "http://schemas.microsoft.com/mapi/proptag/0x3712001F",
+            "FirmaDiego"
+        )
+
+        mail.HTMLBody = f"""
+        <p>Buen día</p>
+        <p>Adjunto les comparto el control de registro de asistencia en RMS del {fecha_archivo}</p>
+        <p>Por favor me colaboran con sus novedades antes de las 3pm del día de hoy, consolidada por cada TL.</p>
+        <p>Por favor consolidarlo en el siguiente link: </p>
+        <p>Gracias</p>
+        <br>
+        <img src="cid:FirmaDiego"><br>
+        """
+
+        mail.To = "; ".join(DESTINATARIOS)
+        mail.Attachments.Add(archivo_absoluto)
+        mail.Send()
+        print("✅ Correo enviado desde la cuenta de Diego con éxito.")
+
+    except Exception as e:
+        print(f"❌ Error al enviar correo: {e}")
+    finally:
+        pythoncom.CoUninitialize()
+
+
+
+# 🔹 Validar extensión de archivo
+def allowed_file(filename):
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 # 📦 CONEXIÓN A MYSQL
@@ -181,7 +263,7 @@ def admin():
             file.save(temp_path)
 
             try:
-                # 🔍 Validar si el archivo ya existe en BD
+                
                 conn = get_connection()
                 cursor = conn.cursor()
                 cursor.execute("SELECT COUNT(*) FROM justificaciones WHERE archivo = %s", (filename,))
@@ -263,8 +345,15 @@ def admin():
                 # 🧹 Limpiar carpeta temporal
                 shutil.rmtree(temp_dir)
 
-                flash("✅ Archivo cargado y procesado correctamente.", "success")
+                archivo_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+
+                enviar_correo_outlook(archivo_path, filename)
+
+                
+
+                flash("✅ Archivo cargado, procesado y enviado por correo correctamente.", "success")
                 return redirect(url_for("admin"))
+
 
             except Exception as e:
                 # ❌ Si falla → borrar archivo temporal y carpeta

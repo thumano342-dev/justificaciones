@@ -293,100 +293,100 @@
       </div>
 
       <script>
-        function solicitarPIN(idx) {
-          Swal.fire({
-            html: `
-      <div style="text-align:center;">
-        <!-- LOGO XIAOMI -->
-        <img src="https://upload.wikimedia.org/wikipedia/commons/2/29/Xiaomi_logo.svg" 
-             alt="Logo Xiaomi" 
-             style="width:70px; height:70px; border-radius:12px; margin-bottom:10px;">
-        <h2 style="
-          font-size: 1.6rem;
-          font-weight: 800;
-          background: linear-gradient(90deg, #ff8c00, #ffb347);
-          -webkit-background-clip: text;
-          background-clip: text;
-          color: transparent;
-          text-transform: uppercase;
-          letter-spacing: 1px;
-          margin:0;
-        ">Ingresa tu PIN</h2>
-      </div>
-    `,
-            input: 'password',
-            inputPlaceholder: '••••••',
-            inputAttributes: {
-              maxlength: 10,
-              autocapitalize: 'off',
-              autocorrect: 'off',
-              style: `
-        text-align:center;
-        font-size: 1.1rem;
-        border-radius: 10px;
-        border: 2px solid #ff8c00;
-        padding: 10px;
-      `
-            },
-            showCancelButton: true,
-            confirmButtonText: 'Entrar',
-            cancelButtonText: 'Cancelar',
-            confirmButtonColor: '#ff8c00',
-            cancelButtonColor: '#6c757d',
-            background: '#1c2530', /* Fondo oscuro */
-            color: '#ffffff',
-            customClass: {
-              popup: 'rounded-4 shadow-lg'
-            },
-            didOpen: () => {
-              const input = Swal.getInput();
+  function solicitarPIN(idx) {
+    Swal.fire({
+      html: `
+        <div style="text-align:center;">
+          <!-- LOGO XIAOMI -->
+          <img src="https://upload.wikimedia.org/wikipedia/commons/2/29/Xiaomi_logo.svg" 
+               alt="Logo Xiaomi" 
+               style="width:70px; height:70px; border-radius:12px; margin-bottom:10px;">
+          <h2 style="
+            font-size: 1.6rem;
+            font-weight: 800;
+            background: linear-gradient(90deg, #ff8c00, #ffb347);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin:0;
+          ">Ingresa tu PIN</h2>
+        </div>
+      `,
+      input: 'password',
+      inputPlaceholder: 'Introduce tu contraseña...',
+      inputAttributes: {
+        maxlength: 10,
+        autocapitalize: 'off',
+        autocorrect: 'off',
+        style: `
+          text-align:center;
+          font-size: 1.1rem;
+          border-radius: 10px;
+          border: 2px solid #ff8c00;
+          padding: 10px;
+        `
+      },
+      showCancelButton: true,
+      confirmButtonText: 'Entrar',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#ff8c00',
+      cancelButtonColor: '#6c757d',
+      background: '#1c2530', /* Fondo oscuro */
+      color: '#ffffff',
+      customClass: {
+        popup: 'rounded-4 shadow-lg'
+      },
+      didOpen: () => {
+        const input = Swal.getInput();
 
-              // 📌 Botón para mostrar/ocultar PIN
-              const toggleBtn = document.createElement('button');
-              toggleBtn.textContent = 'Mostrar';
-              toggleBtn.type = 'button';
-              toggleBtn.style.position = 'absolute';
-              toggleBtn.style.right = '20px';
-              toggleBtn.style.top = '50%';
-              toggleBtn.style.transform = 'translateY(-50%)';
-              toggleBtn.style.background = 'linear-gradient(90deg, #ff8c00, #ffb347)';
-              toggleBtn.style.color = '#fff';
-              toggleBtn.style.border = 'none';
-              toggleBtn.style.borderRadius = '6px';
-              toggleBtn.style.padding = '4px 10px';
-              toggleBtn.style.fontSize = '0.8rem';
-              toggleBtn.style.fontWeight = 'bold';
-              toggleBtn.style.cursor = 'pointer';
-              toggleBtn.style.transition = 'all 0.2s ease';
-              toggleBtn.onmouseenter = () => toggleBtn.style.transform = 'translateY(-50%) scale(1.05)';
-              toggleBtn.onmouseleave = () => toggleBtn.style.transform = 'translateY(-50%)';
+        // 📌 Botón para mostrar/ocultar PIN
+        const toggleBtn = document.createElement('button');
+        toggleBtn.textContent = 'Mostrar';
+        toggleBtn.type = 'button';
+        toggleBtn.style.position = 'absolute';
+        toggleBtn.style.right = '20px';
+        toggleBtn.style.top = '50%';
+        toggleBtn.style.transform = 'translateY(-50%)';
+        toggleBtn.style.background = 'linear-gradient(90deg, #ff8c00, #ffb347)';
+        toggleBtn.style.color = '#fff';
+        toggleBtn.style.border = 'none';
+        toggleBtn.style.borderRadius = '6px';
+        toggleBtn.style.padding = '4px 10px';
+        toggleBtn.style.fontSize = '0.8rem';
+        toggleBtn.style.fontWeight = 'bold';
+        toggleBtn.style.cursor = 'pointer';
+        toggleBtn.style.transition = 'all 0.2s ease';
+        toggleBtn.onmouseenter = () => toggleBtn.style.transform = 'translateY(-50%) scale(1.05)';
+        toggleBtn.onmouseleave = () => toggleBtn.style.transform = 'translateY(-50%)';
 
-              toggleBtn.onclick = () => {
-                input.type = input.type === 'password' ? 'text' : 'password';
-                toggleBtn.textContent = input.type === 'password' ? 'Mostrar' : 'Ocultar';
-              };
+        toggleBtn.onclick = () => {
+          input.type = input.type === 'password' ? 'text' : 'password';
+          toggleBtn.textContent = input.type === 'password' ? 'Mostrar' : 'Ocultar';
+        };
 
-              const parent = Swal.getPopup().querySelector('.swal2-input').parentNode;
-              parent.style.position = 'relative';
-              parent.appendChild(toggleBtn);
-            },
-            preConfirm: (pin) => {
-              if (!pin) {
-                Swal.showValidationMessage('⚠️ Debes ingresar un PIN');
-                return false;
-              }
-              return pin;
-            }
-          }).then((result) => {
-            if (result.isConfirmed) {
-              const pinInput = document.getElementById("pin-" + idx);
-              pinInput.value = result.value;
-              document.getElementById("form-canal-" + idx).submit();
-              pinInput.value = ""; // ✅ Limpia el input después de enviar
-            }
-          });
+        const parent = Swal.getPopup().querySelector('.swal2-input').parentNode;
+        parent.style.position = 'relative';
+        parent.appendChild(toggleBtn);
+      },
+      preConfirm: (pin) => {
+        if (!pin) {
+          Swal.showValidationMessage('⚠️ Debes ingresar un PIN');
+          return false;
         }
-      </script>
+        return pin;
+      }
+    }).then((result) => {
+      if (result.isConfirmed) {
+        const pinInput = document.getElementById("pin-" + idx);
+        pinInput.value = result.value;
+        document.getElementById("form-canal-" + idx).submit();
+        pinInput.value = ""; // ✅ Limpia el input después de enviar
+      }
+    });
+  }
+</script>
 
 
 
